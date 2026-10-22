@@ -1,14 +1,15 @@
 # Team 5100 TeleOp
 
-Select **5100 TeleOp** on the Driver Station. Point the robot away from the
-driver before START; this sets field forward. Assign the movement controller
+Select **5100 TeleOp** on the Driver Station, then INIT and START.
+Driving is robot-centric: forward always follows the robot front, and strafing
+is relative to the robot, regardless of its heading. No heading reset is needed.
+Assign the movement controller
 as gamepad 1 and the mechanism controller as gamepad 2 on the Driver Station.
 
 | Driver | Control | Action |
 | --- | --- | --- |
-| 1 | Left stick | Field-centric forward/backward and strafe |
+| 1 | Left stick | Robot-centric forward/backward and strafe |
 | 1 | Right stick X | Turn, with 0.60 sensitivity |
-| 1 | Options | Reset field heading to the current robot orientation |
 | 2 | Left trigger | Intake forward at fixed 80% while held |
 | 2 | Left bumper (hold) | Reverse intake at 60%; overrides left trigger |
 | 2 | Right trigger | Shooter at selected power while held (starts at 85%) |
@@ -27,7 +28,8 @@ Releasing both stop buttons resumes the current stick/trigger commands.
 Drive wheel power is normalized and capped at 80%. There is no added joystick
 dead zone, turbo, or separate slow mode. Drive and intake use BRAKE; the shooter
 coasts when released. Motors use RUN_WITHOUT_ENCODER, so encoder cables are not
-required. Telemetry shows heading, wheel powers, intake power as a percentage with
+required. The IMU heading is informational only and never rotates the drive
+commands. Options is unassigned. Telemetry shows heading, wheel powers, intake power as a percentage with
 forward/reverse/stopped status, shooter commanded power as a percentage, the
 selected shooter percentage even when stopped, and the gate command. These
 percentages are motor power commands, not measured RPM. Motor directions assume mirrored direct drive (left reversed, right

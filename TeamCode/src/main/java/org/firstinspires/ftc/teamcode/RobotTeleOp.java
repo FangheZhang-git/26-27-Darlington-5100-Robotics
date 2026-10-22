@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-/** Field-centric drive, fixed intake and selectable shooter power, and adjustable intake-height gate. */
+/** Robot-centric drive, fixed intake and selectable shooter power, and adjustable intake-height gate. */
 @TeleOp(name = "5100 TeleOp", group = "5100")
 public final class RobotTeleOp extends LinearOpMode {
     private static final double DRIVE_SPEED = 0.80;
@@ -24,8 +24,8 @@ public final class RobotTeleOp extends LinearOpMode {
     public void runOpMode() {
         RobotHardware robot = new RobotHardware(hardwareMap);
         try {
-            telemetry.addLine("5100 ready. Point robot away from driver before START.");
-            telemetry.addLine("Driver 1: left stick move | right stick turn | Options reset heading");
+            telemetry.addLine("5100 ready. Robot-centric: forward follows the robot front.");
+            telemetry.addLine("Driver 1: left stick move | right stick turn");
             telemetry.addLine("Driver 2: LT intake 80% | LB reverse 60% | RT shooter (starts at 85%)");
             telemetry.addLine("Driver 2: up/down shooter +/-10 points (0-90%) | left/right gate");
             telemetry.addLine("Either driver: hold B/Circle to stop all motors.");
@@ -34,8 +34,6 @@ public final class RobotTeleOp extends LinearOpMode {
             waitForStart();
             if (isStopRequested()) return;
 
-            robot.resetHeading();
-            boolean optionsWasPressed = gamepad1.options;
             boolean upWasPressed = gamepad2.dpad_up;
             boolean downWasPressed = gamepad2.dpad_down;
             int shooterPercent = SHOOTER_INITIAL_PERCENT;
@@ -47,10 +45,6 @@ public final class RobotTeleOp extends LinearOpMode {
                 // Cap elapsed time so a stalled loop cannot cause a large gate adjustment.
                 double dt = Range.clip(loopTimer.seconds(), 0, 0.05);
                 loopTimer.reset();
-                boolean optionsPressed = gamepad1.options;
-                if (optionsPressed && !optionsWasPressed) robot.resetHeading();
-                optionsWasPressed = optionsPressed;
-
                 boolean stopHeld = gamepad1.b || gamepad2.b;
                 boolean upPressed = gamepad2.dpad_up;
                 boolean downPressed = gamepad2.dpad_down;
@@ -69,7 +63,7 @@ public final class RobotTeleOp extends LinearOpMode {
                     robot.stopAll();
                 } else {
                     // No application dead zone: pass proportional SDK stick values directly.
-                    robot.driveFieldCentric(-gamepad1.left_stick_y, gamepad1.left_stick_x,
+                    robot.driveRobotCentric(-gamepad1.left_stick_y, gamepad1.left_stick_x,
                             gamepad1.right_stick_x * TURN_SENSITIVITY, DRIVE_SPEED);
                     robot.setIntakePower(gamepad2.left_bumper
                             ? -INTAKE_REVERSE_POWER
@@ -83,9 +77,9 @@ public final class RobotTeleOp extends LinearOpMode {
                     }
                 }
 
-                telemetry.addData("Mode", stopHeld ? "Motors stopped (B held)" : "Field-centric / 80% drive");
-                telemetry.addLine("Driver 1: sticks drive | Options heading | Either B/Circle stops motors");
-                telemetry.addData("Heading", "%.1f degrees", Math.toDegrees(robot.headingRadians()));
+                telemetry.addData("Mode", stopHeld ? "Motors stopped (B held)" : "Robot-centric / 80% drive");
+                telemetry.addLine("Driver 1: sticks drive | Either B/Circle stops motors");
+                telemetry.addData("IMU heading (info only)", "%.1f degrees", Math.toDegrees(robot.headingRadians()));
                 telemetry.addData("LF / RF", "%.2f / %.2f", robot.leftFront.getPower(), robot.rightFront.getPower());
                 telemetry.addData("LB / RB", "%.2f / %.2f", robot.leftBack.getPower(), robot.rightBack.getPower());
                 double intakePower = robot.intake.getPower();
