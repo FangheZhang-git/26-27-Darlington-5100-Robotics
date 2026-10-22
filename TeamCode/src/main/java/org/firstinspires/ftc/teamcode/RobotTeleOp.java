@@ -25,9 +25,10 @@ public final class RobotTeleOp extends LinearOpMode {
         RobotHardware robot = new RobotHardware(hardwareMap);
         try {
             telemetry.addLine("5100 ready. Point robot away from driver before START.");
-            telemetry.addLine("Left stick: move | Right stick X: turn | Options: reset heading");
-            telemetry.addLine("LT: intake 80% | LB: reverse 60% | RT: shooter (starts at 85%)");
-            telemetry.addLine("D-pad up/down: shooter +/-10 points (0-90%) | left/right: gate | B: stop");
+            telemetry.addLine("Driver 1: left stick move | right stick turn | Options reset heading");
+            telemetry.addLine("Driver 2: LT intake 80% | LB reverse 60% | RT shooter (starts at 85%)");
+            telemetry.addLine("Driver 2: up/down shooter +/-10 points (0-90%) | left/right gate");
+            telemetry.addLine("Either driver: hold B/Circle to stop all motors.");
             telemetry.addLine("Gate stays uncommanded until D-pad input; first command starts near 0.50.");
             telemetry.update();
             waitForStart();
@@ -35,8 +36,8 @@ public final class RobotTeleOp extends LinearOpMode {
 
             robot.resetHeading();
             boolean optionsWasPressed = gamepad1.options;
-            boolean upWasPressed = gamepad1.dpad_up;
-            boolean downWasPressed = gamepad1.dpad_down;
+            boolean upWasPressed = gamepad2.dpad_up;
+            boolean downWasPressed = gamepad2.dpad_down;
             int shooterPercent = SHOOTER_INITIAL_PERCENT;
             // A servo has no actual-position feedback. Do not treat getPosition() as a measurement.
             double stickPosition = STICK_INITIAL_POSITION;
@@ -50,10 +51,11 @@ public final class RobotTeleOp extends LinearOpMode {
                 if (optionsPressed && !optionsWasPressed) robot.resetHeading();
                 optionsWasPressed = optionsPressed;
 
-                boolean upPressed = gamepad1.dpad_up;
-                boolean downPressed = gamepad1.dpad_down;
+                boolean stopHeld = gamepad1.b || gamepad2.b;
+                boolean upPressed = gamepad2.dpad_up;
+                boolean downPressed = gamepad2.dpad_down;
                 // One adjustment per new press. Opposite buttons together do nothing.
-                if (!gamepad1.b && !(upPressed && downPressed)) {
+                if (!stopHeld && !(upPressed && downPressed)) {
                     if (upPressed && !upWasPressed) {
                         shooterPercent = Math.min(SHOOTER_MAX_PERCENT, shooterPercent + SHOOTER_STEP_PERCENT);
                     } else if (downPressed && !downWasPressed) {
@@ -63,17 +65,17 @@ public final class RobotTeleOp extends LinearOpMode {
                 upWasPressed = upPressed;
                 downWasPressed = downPressed;
 
-                if (gamepad1.b) {
+                if (stopHeld) {
                     robot.stopAll();
                 } else {
                     // No application dead zone: pass proportional SDK stick values directly.
                     robot.driveFieldCentric(-gamepad1.left_stick_y, gamepad1.left_stick_x,
                             gamepad1.right_stick_x * TURN_SENSITIVITY, DRIVE_SPEED);
-                    robot.setIntakePower(gamepad1.left_bumper
+                    robot.setIntakePower(gamepad2.left_bumper
                             ? -INTAKE_REVERSE_POWER
-                            : (gamepad1.left_trigger > TRIGGER_THRESHOLD ? INTAKE_FORWARD_POWER : 0));
-                    robot.setShooterPower(gamepad1.right_trigger > TRIGGER_THRESHOLD ? shooterPercent / 100.0 : 0);
-                    int gateDirection = (gamepad1.dpad_right ? 1 : 0) - (gamepad1.dpad_left ? 1 : 0);
+                            : (gamepad2.left_trigger > TRIGGER_THRESHOLD ? INTAKE_FORWARD_POWER : 0));
+                    robot.setShooterPower(gamepad2.right_trigger > TRIGGER_THRESHOLD ? shooterPercent / 100.0 : 0);
+                    int gateDirection = (gamepad2.dpad_right ? 1 : 0) - (gamepad2.dpad_left ? 1 : 0);
                     if (gateDirection != 0) {
                         stickPosition = Range.clip(stickPosition + gateDirection * STICK_RATE * dt, 0, 1);
                         robot.setStickPosition(stickPosition);
@@ -81,7 +83,8 @@ public final class RobotTeleOp extends LinearOpMode {
                     }
                 }
 
-                telemetry.addData("Mode", gamepad1.b ? "Motors stopped (B held)" : "Field-centric / 80% drive");
+                telemetry.addData("Mode", stopHeld ? "Motors stopped (B held)" : "Field-centric / 80% drive");
+                telemetry.addLine("Driver 1: sticks drive | Options heading | Either B/Circle stops motors");
                 telemetry.addData("Heading", "%.1f degrees", Math.toDegrees(robot.headingRadians()));
                 telemetry.addData("LF / RF", "%.2f / %.2f", robot.leftFront.getPower(), robot.rightFront.getPower());
                 telemetry.addData("LB / RB", "%.2f / %.2f", robot.leftBack.getPower(), robot.rightBack.getPower());
@@ -91,7 +94,7 @@ public final class RobotTeleOp extends LinearOpMode {
                 telemetry.addData("Shooter power", "%.0f%%", robot.shooter.getPower() * 100);
                 telemetry.addData("Shooter setting", "%d%% (0-90%%)", shooterPercent);
                 telemetry.addData("Gate command", stickCommanded ? String.format(java.util.Locale.US, "%.3f", stickPosition) : "Not positioned (D-pad left/right to adjust)");
-                telemetry.addLine("LT intake 80% | LB reverse 60% | RT shooter | Up/down power | Left/right gate | B stop");
+                telemetry.addLine("Driver 2: LT intake | LB reverse | RT shooter | Up/down power | Left/right gate");
                 telemetry.update();
                 idle();
             }

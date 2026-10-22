@@ -1,26 +1,28 @@
 # Team 5100 TeleOp
 
 Select **5100 TeleOp** on the Driver Station. Point the robot away from the
-driver before START; this sets field forward. All controls use gamepad 1.
+driver before START; this sets field forward. Assign the movement controller
+as gamepad 1 and the mechanism controller as gamepad 2 on the Driver Station.
 
-| Control | Action |
-| --- | --- |
-| Left stick | Field-centric forward/backward and strafe |
-| Right stick X | Turn, with 0.60 sensitivity |
-| Options | Reset field heading to the current robot orientation |
-| Left trigger | Intake forward at fixed 80% while held |
-| Left bumper (hold) | Reverse intake at 60%; overrides left trigger |
-| Right trigger | Shooter at selected power while held (starts at 85%) |
-| D-pad up/down (press) | Increase/decrease shooter setting by 10 percentage points, limited to 0-90% |
-| D-pad right/left (hold) | Increase/decrease Stick height-gate servo position |
-| B (hold) | Stop all motors and suspend gate adjustment; release resumes controls |
-| Driver Station STOP | End TeleOp and stop all motors |
+| Driver | Control | Action |
+| --- | --- | --- |
+| 1 | Left stick | Field-centric forward/backward and strafe |
+| 1 | Right stick X | Turn, with 0.60 sensitivity |
+| 1 | Options | Reset field heading to the current robot orientation |
+| 2 | Left trigger | Intake forward at fixed 80% while held |
+| 2 | Left bumper (hold) | Reverse intake at 60%; overrides left trigger |
+| 2 | Right trigger | Shooter at selected power while held (starts at 85%) |
+| 2 | D-pad up/down (press) | Increase/decrease shooter setting by 10 percentage points, limited to 0-90% |
+| 2 | D-pad right/left (hold) | Increase/decrease Stick height-gate servo position |
+| Either | B / Circle (hold) | Stop all motors and suspend gate adjustment; release resumes controls |
+| Driver Station | STOP | End TeleOp and stop all motors |
 
 Triggers act as on/off switches above 10% trigger travel, not power sliders.
 Release a trigger to stop that motor. Shooter setting resets to 85% each run;
 one up press from 85% gives 90%, and one down press from 85% gives 75%.
 Holding an arrow does not repeat. Up and down together do nothing. Adjusting
-power does not start the shooter without holding RT. B suppresses adjustments.
+power does not start the shooter without holding RT. Either driver holding B/Circle suppresses adjustments and stops all motors.
+Releasing both stop buttons resumes the current stick/trigger commands.
 
 Drive wheel power is normalized and capped at 80%. There is no added joystick
 dead zone, turbo, or separate slow mode. Drive and intake use BRAKE; the shooter
