@@ -3,6 +3,8 @@
 Select **5100 TeleOp** on the Driver Station, then INIT and START.
 Driving is robot-centric: forward always follows the robot front, and strafing
 is relative to the robot, regardless of its heading. No heading reset is needed.
+Forward/backward joystick polarity is inverted from the initial version based
+on the physical driving check; strafe and turn inputs are unchanged.
 Assign the movement controller
 as gamepad 1 and the mechanism controller as gamepad 2 on the Driver Station.
 

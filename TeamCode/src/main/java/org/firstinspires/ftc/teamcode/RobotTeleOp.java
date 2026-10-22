@@ -63,7 +63,8 @@ public final class RobotTeleOp extends LinearOpMode {
                     robot.stopAll();
                 } else {
                     // No application dead zone: pass proportional SDK stick values directly.
-                    robot.driveRobotCentric(-gamepad1.left_stick_y, gamepad1.left_stick_x,
+                    // Forward/backward polarity corrected from the physical driving check.
+                    robot.driveRobotCentric(gamepad1.left_stick_y, gamepad1.left_stick_x,
                             gamepad1.right_stick_x * TURN_SENSITIVITY, DRIVE_SPEED);
                     robot.setIntakePower(gamepad2.left_bumper
                             ? -INTAKE_REVERSE_POWER
