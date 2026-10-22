@@ -106,7 +106,7 @@ public final class RobotHardware {
     }
 
     public void setShooterPower(double power) {
-        shooter.setPower(Range.clip(power, 0, 1));
+        shooter.setPower(Range.clip(power, 0, 0.90));
     }
 
     public void setStickPosition(double position) {

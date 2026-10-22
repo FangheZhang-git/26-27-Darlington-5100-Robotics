@@ -8,12 +8,19 @@ driver before START; this sets field forward. All controls use gamepad 1.
 | Left stick | Field-centric forward/backward and strafe |
 | Right stick X | Turn, with 0.60 sensitivity |
 | Options | Reset field heading to the current robot orientation |
-| Left trigger | Intake forward, proportional 0-100% power |
+| Left trigger | Intake forward at fixed 80% while held |
 | Left bumper (hold) | Reverse intake at 60%; overrides left trigger |
-| Right trigger | Shooter, proportional 0-100% power |
-| D-pad up/down (hold) | Increase/decrease Stick height-gate servo position |
+| Right trigger | Shooter at selected power while held (starts at 85%) |
+| D-pad up/down (press) | Increase/decrease shooter setting by 10 percentage points, limited to 0-90% |
+| D-pad right/left (hold) | Increase/decrease Stick height-gate servo position |
 | B (hold) | Stop all motors and suspend gate adjustment; release resumes controls |
 | Driver Station STOP | End TeleOp and stop all motors |
+
+Triggers act as on/off switches above 10% trigger travel, not power sliders.
+Release a trigger to stop that motor. Shooter setting resets to 85% each run;
+one up press from 85% gives 90%, and one down press from 85% gives 75%.
+Holding an arrow does not repeat. Up and down together do nothing. Adjusting
+power does not start the shooter without holding RT. B suppresses adjustments.
 
 Drive wheel power is normalized and capped at 80%. There is no added joystick
 dead zone, turbo, or separate slow mode. Drive and intake use BRAKE; the shooter
@@ -23,12 +30,12 @@ command. Motor directions assume mirrored direct drive (left reversed, right
 forward) and forward intake/shooter wiring; these are not physically verified.
 
 Stick is a positional servo controlling the intake opening to reject oversized
-balls. It is not a shooter feeder. D-pad adjusts at 0.25 normalized travel per
-second and holds the last commanded position on release. Both D-pad buttons
+balls. It is not a shooter feeder. D-pad right/left adjusts at 0.25 normalized travel per
+second and holds the last commanded position on release. Both left/right buttons
 held together make no adjustment. No gate command is sent during INIT or START.
 The first D-pad command starts near 0.50, because no measured position or known
 mechanical endpoints were supplied. The command is limited to 0-1; that is the
-servo command range, not a verified mechanical clearance range. Up increases
+servo command range, not a verified mechanical clearance range. Right increases
 servo position; whether that physically raises the gate depends on the linkage.
 No automatic ball-size detection is implemented because no sensor is specified.
 
@@ -54,7 +61,19 @@ The photos show GoBILDA 5202/3/4 series motor entries and a standard Servo entry
 for Stick. IMU orientation follows the supplied reference: REV logo UP, USB
 RIGHT. The old lift/grabber hardware and separate test OpModes are removed.
 
-## Install and run
+## Current deployment
+
+The hub runs Robot Controller 12.0. The previously deployed version was compiled
+using OnBot Java, preserving that app. This repository builds an SDK 11.2.1 APK
+with a different signature; do not install it over the stock 12.0 app. For this
+hub, upload RobotHardware.java and RobotTeleOp.java to OnBot Java and Build
+Everything. Select **5100 TeleOp** after the build succeeds. Current source
+changes are not on the hub until that upload/build completes.
+
+## Android Studio deployment (separate installation)
+
+The instructions below apply to a compatible Android Studio-managed installation,
+not the hub's current stock 12.0 app.
 
 Open this project in Android Studio, connect the powered Control Hub by USB,
 select the TeamCode run configuration and the Control Hub device, then Run.
