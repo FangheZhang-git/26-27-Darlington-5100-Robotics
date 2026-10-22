@@ -85,7 +85,10 @@ public final class RobotTeleOp extends LinearOpMode {
                 telemetry.addData("Heading", "%.1f degrees", Math.toDegrees(robot.headingRadians()));
                 telemetry.addData("LF / RF", "%.2f / %.2f", robot.leftFront.getPower(), robot.rightFront.getPower());
                 telemetry.addData("LB / RB", "%.2f / %.2f", robot.leftBack.getPower(), robot.rightBack.getPower());
-                telemetry.addData("Intake / Shooter", "%.2f / %.2f", robot.intake.getPower(), robot.shooter.getPower());
+                double intakePower = robot.intake.getPower();
+                telemetry.addData("Intake power", "%.0f%% (%s)", Math.abs(intakePower) * 100,
+                        intakePower > 0 ? "forward" : intakePower < 0 ? "reverse" : "stopped");
+                telemetry.addData("Shooter power", "%.0f%%", robot.shooter.getPower() * 100);
                 telemetry.addData("Shooter setting", "%d%% (0-90%%)", shooterPercent);
                 telemetry.addData("Gate command", stickCommanded ? String.format(java.util.Locale.US, "%.3f", stickPosition) : "Not positioned (D-pad left/right to adjust)");
                 telemetry.addLine("LT intake 80% | LB reverse 60% | RT shooter | Up/down power | Left/right gate | B stop");

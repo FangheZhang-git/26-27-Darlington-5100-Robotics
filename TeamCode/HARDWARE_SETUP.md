@@ -25,8 +25,10 @@ power does not start the shooter without holding RT. B suppresses adjustments.
 Drive wheel power is normalized and capped at 80%. There is no added joystick
 dead zone, turbo, or separate slow mode. Drive and intake use BRAKE; the shooter
 coasts when released. Motors use RUN_WITHOUT_ENCODER, so encoder cables are not
-required. Telemetry shows heading, wheel powers, intake/shooter power and gate
-command. Motor directions assume mirrored direct drive (left reversed, right
+required. Telemetry shows heading, wheel powers, intake power as a percentage with
+forward/reverse/stopped status, shooter commanded power as a percentage, the
+selected shooter percentage even when stopped, and the gate command. These
+percentages are motor power commands, not measured RPM. Motor directions assume mirrored direct drive (left reversed, right
 forward) and forward intake/shooter wiring; these are not physically verified.
 
 Stick is a positional servo controlling the intake opening to reject oversized
