@@ -5,16 +5,13 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-/** Robot-centric drive, fixed intake and selectable shooter power, and adjustable intake-height gate. */
+/** Robot-centric drive, fixed intake and encoder-regulated shooter RPM, and adjustable intake-height gate. */
 @TeleOp(name = "5100 TeleOp", group = "5100")
 public final class RobotTeleOp extends LinearOpMode {
     private static final double DRIVE_SPEED = 1.0;
     private static final double TURN_SENSITIVITY = 0.80;
     private static final double INTAKE_FORWARD_POWER = 0.80;
     private static final double TRIGGER_THRESHOLD = 0.10;
-    private static final int SHOOTER_INITIAL_PERCENT = 85;
-    private static final int SHOOTER_STEP_PERCENT = 10;
-    private static final int SHOOTER_MAX_PERCENT = 90;
     private static final double INTAKE_REVERSE_POWER = 0.60;
     // Normalized servo travel per second. Right increases position; left decreases it.
     private static final double STICK_RATE = 0.25;
@@ -26,8 +23,8 @@ public final class RobotTeleOp extends LinearOpMode {
         try {
             telemetry.addLine("5100 ready. Robot-centric: forward follows the robot front.");
             telemetry.addLine("Driver 1: left stick move | right stick turn");
-            telemetry.addLine("Driver 2: LT intake 80% | LB reverse 60% | RT shooter (starts at 85%)");
-            telemetry.addLine("Driver 2: up/down shooter +/-10 points (0-90%) | left/right gate");
+            telemetry.addLine("Driver 2: LT intake 80% | LB reverse 60% | RT shooter (starts at 300 wheel RPM)");
+            telemetry.addLine("Driver 2: up/down shooter +/-10 RPM (0-900) | left/right gate");
             telemetry.addLine("Either driver: hold B/Circle to stop all motors.");
             telemetry.addLine("Gate stays uncommanded until D-pad input; first command starts near 0.50.");
             telemetry.update();
@@ -36,7 +33,7 @@ public final class RobotTeleOp extends LinearOpMode {
 
             boolean upWasPressed = gamepad2.dpad_up;
             boolean downWasPressed = gamepad2.dpad_down;
-            int shooterPercent = SHOOTER_INITIAL_PERCENT;
+            int shooterRpm = ShooterSettings.INITIAL_RPM;
             // A servo has no actual-position feedback. Do not treat getPosition() as a measurement.
             double stickPosition = STICK_INITIAL_POSITION;
             boolean stickCommanded = false;
@@ -51,9 +48,9 @@ public final class RobotTeleOp extends LinearOpMode {
                 // One adjustment per new press. Opposite buttons together do nothing.
                 if (!stopHeld && !(upPressed && downPressed)) {
                     if (upPressed && !upWasPressed) {
-                        shooterPercent = Math.min(SHOOTER_MAX_PERCENT, shooterPercent + SHOOTER_STEP_PERCENT);
+                        shooterRpm = Math.min(ShooterSettings.MAX_RPM, shooterRpm + ShooterSettings.STEP_RPM);
                     } else if (downPressed && !downWasPressed) {
-                        shooterPercent = Math.max(0, shooterPercent - SHOOTER_STEP_PERCENT);
+                        shooterRpm = Math.max(0, shooterRpm - ShooterSettings.STEP_RPM);
                     }
                 }
                 upWasPressed = upPressed;
@@ -69,7 +66,7 @@ public final class RobotTeleOp extends LinearOpMode {
                     robot.setIntakePower(gamepad2.left_bumper
                             ? -INTAKE_REVERSE_POWER
                             : (gamepad2.left_trigger > TRIGGER_THRESHOLD ? INTAKE_FORWARD_POWER : 0));
-                    robot.setShooterPower(gamepad2.right_trigger > TRIGGER_THRESHOLD ? shooterPercent / 100.0 : 0);
+                    robot.setShooterRpm(gamepad2.right_trigger > TRIGGER_THRESHOLD ? shooterRpm : 0);
                     int gateDirection = (gamepad2.dpad_right ? 1 : 0) - (gamepad2.dpad_left ? 1 : 0);
                     if (gateDirection != 0) {
                         stickPosition = Range.clip(stickPosition + gateDirection * STICK_RATE * dt, 0, 1);
@@ -78,7 +75,9 @@ public final class RobotTeleOp extends LinearOpMode {
                     }
                 }
 
-                telemetry.addData("Mode", stopHeld ? "Motors stopped (B held)" : "Robot-centric / 80% drive");
+                double measuredRpm = robot.getShooterRpm();
+                boolean shooterReady = robot.updateShooterLight(measuredRpm);
+                telemetry.addData("Mode", stopHeld ? "Motors stopped (B held)" : "Robot-centric / 100% drive");
                 telemetry.addLine("Driver 1: sticks drive | Either B/Circle stops motors");
                 telemetry.addData("IMU heading (info only)", "%.1f degrees", Math.toDegrees(robot.headingRadians()));
                 telemetry.addData("LF / RF", "%.2f / %.2f", robot.leftFront.getPower(), robot.rightFront.getPower());
@@ -86,10 +85,12 @@ public final class RobotTeleOp extends LinearOpMode {
                 double intakePower = robot.intake.getPower();
                 telemetry.addData("Intake power", "%.0f%% (%s)", Math.abs(intakePower) * 100,
                         intakePower > 0 ? "forward" : intakePower < 0 ? "reverse" : "stopped");
-                telemetry.addData("Shooter power", "%.0f%%", robot.shooter.getPower() * 100);
-                telemetry.addData("Shooter setting", "%d%% (0-90%%)", shooterPercent);
+                telemetry.addData("Shooter target (wheel RPM)", shooterRpm);
+                telemetry.addData("Shooter measured (wheel RPM)", "%.1f", measuredRpm);
+                telemetry.addData("Shooter active", !stopHeld && gamepad2.right_trigger > TRIGGER_THRESHOLD && shooterRpm > 0);
+                telemetry.addData("Shooter ready", shooterReady ? "PURPLE - within +/-100 RPM" : "RED - not ready");
                 telemetry.addData("Gate command", stickCommanded ? String.format(java.util.Locale.US, "%.3f", stickPosition) : "Not positioned (D-pad left/right to adjust)");
-                telemetry.addLine("Driver 2: LT intake | LB reverse | RT shooter | Up/down power | Left/right gate");
+                telemetry.addLine("Driver 2: LT intake | LB reverse | RT shooter | Up/down RPM | Left/right gate");
                 telemetry.update();
                 idle();
             }

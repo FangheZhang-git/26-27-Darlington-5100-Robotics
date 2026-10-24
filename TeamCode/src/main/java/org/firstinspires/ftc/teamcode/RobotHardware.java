@@ -2,6 +2,9 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.PwmControl;
+import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -35,7 +38,12 @@ public final class RobotHardware {
     public final DcMotor rightBack;
     public final IMU imu;
     public final DcMotor intake;
-    public final DcMotor shooter;
+    public final DcMotorEx shooter;
+    public final ServoImplEx shootLight;
+    private double commandedShooterRpm;
+    // Manufacturer chart: red at 1100 us, violet at 1900 us. Stay inside edges.
+    private static final double LIGHT_RED = (1110.0 - 600.0) / 1800.0;
+    private static final double LIGHT_PURPLE = (1880.0 - 600.0) / 1800.0;
     public final Servo stick;
 
     public RobotHardware(HardwareMap hardwareMap) {
@@ -48,11 +56,18 @@ public final class RobotHardware {
         configure(rightFront, RF_DIRECTION);
         configure(rightBack, RB_DIRECTION);
         intake = hardwareMap.get(DcMotor.class, INTAKE_NAME);
-        shooter = hardwareMap.get(DcMotor.class, SHOOTER_NAME);
+        shooter = hardwareMap.get(DcMotorEx.class, SHOOTER_NAME);
+        shootLight = hardwareMap.get(ServoImplEx.class, "shootLight");
+        shootLight.setDirection(Servo.Direction.FORWARD);
+        shootLight.setPwmRange(new PwmControl.PwmRange(600, 2400));
+        shootLight.setPosition(LIGHT_RED);
         stick = hardwareMap.get(Servo.class, STICK_NAME);
         configure(intake, INTAKE_DIRECTION);
         configure(shooter, SHOOTER_DIRECTION);
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooter.setVelocityPIDFCoefficients(ShooterSettings.VELOCITY_P,
+                ShooterSettings.VELOCITY_I, ShooterSettings.VELOCITY_D, ShooterSettings.VELOCITY_F);
         stick.setDirection(Servo.Direction.FORWARD);
         // Do not move the height gate during INIT; the driver positions it manually.
         imu = hardwareMap.get(IMU.class, IMU_NAME);
@@ -105,8 +120,24 @@ public final class RobotHardware {
         intake.setPower(Range.clip(power, -1, 1));
     }
 
-    public void setShooterPower(double power) {
-        shooter.setPower(Range.clip(power, 0, 0.90));
+    public void setShooterRpm(double wheelRpm) {
+        if (!Double.isFinite(wheelRpm)) wheelRpm = 0;
+        commandedShooterRpm = Range.clip(wheelRpm, 0, ShooterSettings.MAX_RPM);
+        if (commandedShooterRpm == 0) {
+            shooter.setPower(0); // Disable velocity regulation and let the wheel coast.
+        } else {
+            shooter.setVelocity(ShooterSettings.rpmToTicksPerSecond(commandedShooterRpm));
+        }
+    }
+
+    public double getShooterRpm() {
+        return ShooterSettings.ticksPerSecondToRpm(shooter.getVelocity());
+    }
+
+    public boolean updateShooterLight(double measuredRpm) {
+        boolean ready = ShooterSettings.isReady(commandedShooterRpm, measuredRpm);
+        shootLight.setPosition(ready ? LIGHT_PURPLE : LIGHT_RED);
+        return ready;
     }
 
     public void setStickPosition(double position) {
@@ -116,7 +147,8 @@ public final class RobotHardware {
     public void stopAll() {
         stopDrive();
         intake.setPower(0);
-        shooter.setPower(0);
+        setShooterRpm(0);
+        shootLight.setPosition(LIGHT_RED);
         // Hold the gate's last position; do not sweep it on STOP.
     }
 
