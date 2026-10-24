@@ -8,8 +8,8 @@ import com.qualcomm.robotcore.util.Range;
 /** Robot-centric drive, fixed intake and selectable shooter power, and adjustable intake-height gate. */
 @TeleOp(name = "5100 TeleOp", group = "5100")
 public final class RobotTeleOp extends LinearOpMode {
-    private static final double DRIVE_SPEED = 0.80;
-    private static final double TURN_SENSITIVITY = 0.60;
+    private static final double DRIVE_SPEED = 1.0;
+    private static final double TURN_SENSITIVITY = 0.80;
     private static final double INTAKE_FORWARD_POWER = 0.80;
     private static final double TRIGGER_THRESHOLD = 0.10;
     private static final int SHOOTER_INITIAL_PERCENT = 85;
