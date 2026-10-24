@@ -15,14 +15,14 @@ as gamepad 1 and the mechanism controller as gamepad 2 on the Driver Station.
 | 2 | Left trigger | Intake forward at fixed 80% while held |
 | 2 | Left bumper (hold) | Reverse intake at 60%; overrides left trigger |
 | 2 | Right trigger | Shooter at selected flywheel RPM while held (starts at 300 RPM) |
-| 2 | D-pad up/down (press) | Increase/decrease target flywheel RPM by 10, limited to 0-900 RPM |
+| 2 | D-pad up/down (press) | Increase/decrease target flywheel RPM by 50, limited to 0-2600 RPM |
 | 2 | D-pad right/left (hold) | Increase/decrease Stick height-gate servo position |
 | Either | B / Circle (hold) | Stop all motors and suspend gate adjustment; release resumes controls |
 | Driver Station | STOP | End TeleOp and stop all motors |
 
 Triggers act as on/off switches above 10% trigger travel, not power sliders.
 Release a trigger to stop that motor. Shooter target resets to 300 wheel RPM
-each run; up/down changes by 10 RPM once per new press, clipped to 0-900 RPM.
+each run; up/down changes by 50 RPM once per new press, clipped to 0-2600 RPM.
 Holding an arrow does not repeat. Up and down together do nothing. Changing
 the target does not start the shooter without holding RT. Either driver's B/Circle
 stops all motors and suppresses adjustment; releasing resumes controller commands.
@@ -42,7 +42,7 @@ The photographed motor is goBILDA 5203-2402-0001: 6000 RPM at 12 V, 1:1 internal
 ratio and 28 encoder counts per output revolution. The 14-tooth motor gear drives
 a 28-tooth flywheel gear, so one flywheel revolution equals two motor revolutions:
 56 encoder counts. Conversion: encoder ticks/second = wheel RPM * 56 / 60.
-300 wheel RPM = 280 ticks/second; 900 wheel RPM = 840 ticks/second.
+300 wheel RPM = 280 ticks/second; 2600 wheel RPM = 2426.67 ticks/second.
 Signed encoder speed is used; reverse rotation cannot show ready.
 
 Connect the shooter encoder to Control Hub encoder port 1. Configure the RGB
@@ -59,7 +59,7 @@ STOP requests red, though the SDK may disable servo PWM after OpMode shutdown.
 ShooterSettings.java holds conversion, RPM limits and initial PIDF gains.
 P=10, I=3, D=0 and F=32767/2800 are starting values, not measured tuning.
 The velocity loop adjusts motor effort rather than retaining the old 90% power
-cap; 900 wheel RPM is the new command limit. Battery/load variation can still
+cap; 2600 wheel RPM is the new command limit. Battery/load variation can still
 make a target unreachable or cause transient speed error. Verify encoder sign,
 RPM tracking and actual light color on the robot before relying on readiness.
 The motor encoder infers wheel speed through the gear ratio; it cannot detect

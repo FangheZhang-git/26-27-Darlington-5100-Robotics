@@ -8,8 +8,8 @@ public final class ShooterSettings {
     public static final double MOTOR_REVS_PER_WHEEL_REV = 28.0 / 14.0;
     public static final double TICKS_PER_WHEEL_REV = MOTOR_TICKS_PER_REV * MOTOR_REVS_PER_WHEEL_REV;
     public static final int INITIAL_RPM = 300;
-    public static final int STEP_RPM = 10;
-    public static final int MAX_RPM = 900;
+    public static final int STEP_RPM = 50;
+    public static final int MAX_RPM = 2600;
     public static final double TOLERANCE_RPM = 100.0;
     // Starting PIDF gains, not physically tuned. F uses nominal 6000 RPM at 12 V.
     public static final double VELOCITY_P = 10.0;
