@@ -13,8 +13,9 @@ public final class RobotTeleOp extends LinearOpMode {
     private static final double INTAKE_FORWARD_POWER = 0.80;
     private static final double TRIGGER_THRESHOLD = 0.10;
     private static final double INTAKE_REVERSE_POWER = 0.60;
-    // Normalized servo travel per second. Right increases position; left decreases it.
-    private static final double STICK_RATE = 0.25;
+    // Fast position commands: full command range in 0.5 s; actual speed depends on servo/load.
+    // Right increases position; left decreases it; release holds the last command.
+    private static final double STICK_RATE = 2.0;
     private static final double STICK_INITIAL_POSITION = 0.50;
 
     @Override
@@ -24,7 +25,7 @@ public final class RobotTeleOp extends LinearOpMode {
             telemetry.addLine("5100 ready. Robot-centric: forward follows the robot front.");
             telemetry.addLine("Driver 1: left stick move | right stick turn");
             telemetry.addLine("Driver 2: LT intake 80% | LB reverse 60% | RT shooter (starts at 1500 wheel RPM)");
-            telemetry.addLine("Driver 2: up/down shooter +/-50 RPM (0-2600) | left/right gate");
+            telemetry.addLine("Driver 2: up/down shooter +/-50 RPM (0-2600) | left/right FAST gate");
             telemetry.addLine("Either driver: hold B/Circle to stop all motors.");
             telemetry.addLine("Gate stays uncommanded until D-pad input; first command starts near 0.50.");
             telemetry.update();
@@ -92,7 +93,7 @@ public final class RobotTeleOp extends LinearOpMode {
                 telemetry.addData("Shooter active", !stopHeld && gamepad2.right_trigger > TRIGGER_THRESHOLD && shooterRpm > 0);
                 telemetry.addData("Shooter ready", shooterReady ? "PURPLE - within +/-100 RPM" : "RED - not ready");
                 telemetry.addData("Gate command", stickCommanded ? String.format(java.util.Locale.US, "%.3f", stickPosition) : "Not positioned (D-pad left/right to adjust)");
-                telemetry.addLine("Driver 2: LT intake | LB reverse | RT shooter | Up/down RPM | Left/right gate");
+                telemetry.addLine("Driver 2: LT intake | LB reverse | RT shooter | Up/down RPM | Left/right FAST gate");
                 telemetry.update();
                 idle();
             }

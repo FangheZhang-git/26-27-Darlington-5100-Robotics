@@ -16,7 +16,7 @@ as gamepad 1 and the mechanism controller as gamepad 2 on the Driver Station.
 | 2 | Left bumper (hold) | Reverse intake at 60%; overrides left trigger |
 | 2 | Right trigger | Shooter at selected flywheel RPM while held (starts at 1500 RPM) |
 | 2 | D-pad up/down (press) | Increase/decrease target flywheel RPM by 50, limited to 0-2600 RPM |
-| 2 | D-pad right/left (hold) | Increase/decrease Stick height-gate servo position |
+| 2 | D-pad right/left (hold) | Quickly increase/decrease Stick height-gate servo position |
 | Either | B / Circle (hold) | Stop all motors and suspend gate adjustment; release resumes controls |
 | Driver Station | STOP | End TeleOp and stop all motors |
 
@@ -77,8 +77,10 @@ Sources: [motor specifications](https://www.gobilda.com/content/user_manuals/520
 [indicator PWM chart (Product Insight 4)](https://www.gobilda.com/rgb-indicator-light-pwm-controlled/).
 
 Stick is a positional servo controlling the intake opening to reject oversized
-balls. It is not a shooter feeder. D-pad right/left adjusts at 0.25 normalized travel per
-second and holds the last commanded position on release. Both left/right buttons
+balls. It is not a shooter feeder. Driver 2 D-pad right/left adjusts at 2.0 normalized travel per
+second (eight times the old rate, full command range in 0.5 seconds) and holds
+the last commanded position on release. Actual rotation speed is limited by
+the servo and mechanical load; this setting does not increase its rated speed. Both left/right buttons
 held together make no adjustment. No gate command is sent during INIT or START.
 The first D-pad command starts near 0.50, because no measured position or known
 mechanical endpoints were supplied. The command is limited to 0-1; that is the
