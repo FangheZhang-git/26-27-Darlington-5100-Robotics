@@ -23,7 +23,7 @@ public final class RobotTeleOp extends LinearOpMode {
         try {
             telemetry.addLine("5100 ready. Robot-centric: forward follows the robot front.");
             telemetry.addLine("Driver 1: left stick move | right stick turn");
-            telemetry.addLine("Driver 2: LT intake 80% | LB reverse 60% | RT shooter (starts at 300 wheel RPM)");
+            telemetry.addLine("Driver 2: LT intake 80% | LB reverse 60% | RT shooter (starts at 1500 wheel RPM)");
             telemetry.addLine("Driver 2: up/down shooter +/-50 RPM (0-2600) | left/right gate");
             telemetry.addLine("Either driver: hold B/Circle to stop all motors.");
             telemetry.addLine("Gate stays uncommanded until D-pad input; first command starts near 0.50.");
@@ -87,6 +87,8 @@ public final class RobotTeleOp extends LinearOpMode {
                         intakePower > 0 ? "forward" : intakePower < 0 ? "reverse" : "stopped");
                 telemetry.addData("Shooter target (wheel RPM)", shooterRpm);
                 telemetry.addData("Shooter measured (wheel RPM)", "%.1f", measuredRpm);
+                telemetry.addData("Shooter error (RPM)", "%.1f", shooterRpm - measuredRpm);
+                telemetry.addData("Shooter battery (V)", "%.2f", robot.getShooterBatteryVoltage());
                 telemetry.addData("Shooter active", !stopHeld && gamepad2.right_trigger > TRIGGER_THRESHOLD && shooterRpm > 0);
                 telemetry.addData("Shooter ready", shooterReady ? "PURPLE - within +/-100 RPM" : "RED - not ready");
                 telemetry.addData("Gate command", stickCommanded ? String.format(java.util.Locale.US, "%.3f", stickPosition) : "Not positioned (D-pad left/right to adjust)");

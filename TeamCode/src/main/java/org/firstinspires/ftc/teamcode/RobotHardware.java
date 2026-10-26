@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
@@ -41,12 +42,17 @@ public final class RobotHardware {
     public final DcMotorEx shooter;
     public final ServoImplEx shootLight;
     private double commandedShooterRpm;
+    private final Iterable<VoltageSensor> voltageSensors;
+    private long lastVoltageUpdateNanos;
+    private double appliedShooterF = ShooterSettings.VELOCITY_F;
+    private double shooterBatteryVoltage = Double.NaN;
     // Manufacturer chart: red at 1100 us, violet at 1900 us. Stay inside edges.
     private static final double LIGHT_RED = (1110.0 - 600.0) / 1800.0;
     private static final double LIGHT_PURPLE = (1880.0 - 600.0) / 1800.0;
     public final Servo stick;
 
     public RobotHardware(HardwareMap hardwareMap) {
+        voltageSensors = hardwareMap.voltageSensor;
         leftFront = hardwareMap.get(DcMotor.class, LEFT_FRONT_NAME);
         leftBack = hardwareMap.get(DcMotor.class, LEFT_BACK_NAME);
         rightFront = hardwareMap.get(DcMotor.class, RIGHT_FRONT_NAME);
@@ -126,8 +132,39 @@ public final class RobotHardware {
         if (commandedShooterRpm == 0) {
             shooter.setPower(0); // Disable velocity regulation and let the wheel coast.
         } else {
-            shooter.setVelocity(ShooterSettings.rpmToTicksPerSecond(commandedShooterRpm));
+            maintainShooterVelocity();
         }
+    }
+
+    /** Keep the hub's encoder PIDF loop running at the requested wheel speed.
+     * Refresh voltage compensation at most four times/second; leave PID gains
+     * unchanged and avoid coefficient writes for insignificant voltage changes.
+     * This cannot prevent transient drops during spin-up or ball contact.
+     */
+    private void maintainShooterVelocity() {
+        long now = System.nanoTime();
+        if (lastVoltageUpdateNanos == 0 || now - lastVoltageUpdateNanos >= 250_000_000L) {
+            lastVoltageUpdateNanos = now;
+            double voltage = Double.POSITIVE_INFINITY;
+            for (VoltageSensor sensor : voltageSensors) {
+                double reading = sensor.getVoltage();
+                if (Double.isFinite(reading) && reading >= 7.0 && reading <= 16.0) {
+                    voltage = Math.min(voltage, reading);
+                }
+            }
+            shooterBatteryVoltage = Double.isFinite(voltage) ? voltage : Double.NaN;
+            double compensatedF = ShooterSettings.voltageCompensatedF(shooterBatteryVoltage);
+            if (Math.abs(compensatedF - appliedShooterF) >= 0.1) {
+                shooter.setVelocityPIDFCoefficients(ShooterSettings.VELOCITY_P,
+                        ShooterSettings.VELOCITY_I, ShooterSettings.VELOCITY_D, compensatedF);
+                appliedShooterF = compensatedF;
+            }
+        }
+        shooter.setVelocity(ShooterSettings.rpmToTicksPerSecond(commandedShooterRpm));
+    }
+
+    public double getShooterBatteryVoltage() {
+        return shooterBatteryVoltage;
     }
 
     public double getShooterRpm() {
