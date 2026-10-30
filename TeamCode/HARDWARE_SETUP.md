@@ -161,7 +161,7 @@ the Driver Station START button begins the sequence:
 | Time after START | Action |
 | --- | --- |
 | 0–5 seconds | Shooter regulates to the default 1430 wheel RPM; drive and intake stopped. |
-| 5–20 seconds | Shooter continues; intake runs forward at 80%. |
+| 5–20 seconds | Shooter continues; intake runs in reverse at 80% (power -0.80). |
 | Next 1.5 seconds | Shooter and intake commands stop; drive backs up at the default 100% power. |
 | Remainder of autonomous | All motor commands remain zero, waiting for TeleOp. |
 
