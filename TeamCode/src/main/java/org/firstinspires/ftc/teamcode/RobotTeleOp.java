@@ -24,7 +24,7 @@ public final class RobotTeleOp extends LinearOpMode {
         try {
             telemetry.addLine("5100 ready. Robot-centric: forward follows the robot front.");
             telemetry.addLine("Driver 1: left stick move | right stick turn");
-            telemetry.addLine("Driver 2: LT intake 80% | LB reverse 60% | RT shooter (starts at 1500 wheel RPM)");
+            telemetry.addLine("Driver 2: LT intake 80% | LB reverse 60% | RT shooter (starts at 1430 wheel RPM)");
             telemetry.addLine("Driver 2: up/down shooter +/-50 RPM (0-2600) | left/right FAST gate");
             telemetry.addLine("Either driver: hold B/Circle to stop all motors.");
             telemetry.addLine("Gate stays uncommanded until D-pad input; first command starts near 0.50.");
@@ -39,9 +39,12 @@ public final class RobotTeleOp extends LinearOpMode {
             double stickPosition = STICK_INITIAL_POSITION;
             boolean stickCommanded = false;
             ElapsedTime loopTimer = new ElapsedTime();
+            ElapsedTime telemetryTimer = new ElapsedTime();
+            telemetry.setMsTransmissionInterval(100);
             while (opModeIsActive()) {
                 // Cap elapsed time so a stalled loop cannot cause a large gate adjustment.
-                double dt = Range.clip(loopTimer.seconds(), 0, 0.05);
+                double loopSeconds = loopTimer.seconds();
+                double dt = Range.clip(loopSeconds, 0, 0.05);
                 loopTimer.reset();
                 boolean stopHeld = gamepad1.b || gamepad2.b;
                 boolean upPressed = gamepad2.dpad_up;
@@ -78,23 +81,30 @@ public final class RobotTeleOp extends LinearOpMode {
 
                 double measuredRpm = robot.getShooterRpm();
                 boolean shooterReady = robot.updateShooterLight(measuredRpm);
-                telemetry.addData("Mode", stopHeld ? "Motors stopped (B held)" : "Robot-centric / 100% drive");
-                telemetry.addLine("Driver 1: sticks drive | Either B/Circle stops motors");
-                telemetry.addData("IMU heading (info only)", "%.1f degrees", Math.toDegrees(robot.headingRadians()));
-                telemetry.addData("LF / RF", "%.2f / %.2f", robot.leftFront.getPower(), robot.rightFront.getPower());
-                telemetry.addData("LB / RB", "%.2f / %.2f", robot.leftBack.getPower(), robot.rightBack.getPower());
-                double intakePower = robot.intake.getPower();
-                telemetry.addData("Intake power", "%.0f%% (%s)", Math.abs(intakePower) * 100,
-                        intakePower > 0 ? "forward" : intakePower < 0 ? "reverse" : "stopped");
-                telemetry.addData("Shooter target (wheel RPM)", shooterRpm);
-                telemetry.addData("Shooter measured (wheel RPM)", "%.1f", measuredRpm);
-                telemetry.addData("Shooter error (RPM)", "%.1f", shooterRpm - measuredRpm);
-                telemetry.addData("Shooter battery (V)", "%.2f", robot.getShooterBatteryVoltage());
-                telemetry.addData("Shooter active", !stopHeld && gamepad2.right_trigger > TRIGGER_THRESHOLD && shooterRpm > 0);
-                telemetry.addData("Shooter ready", shooterReady ? "PURPLE - within +/-100 RPM" : "RED - not ready");
-                telemetry.addData("Gate command", stickCommanded ? String.format(java.util.Locale.US, "%.3f", stickPosition) : "Not positioned (D-pad left/right to adjust)");
-                telemetry.addLine("Driver 2: LT intake | LB reverse | RT shooter | Up/down RPM | Left/right FAST gate");
-                telemetry.update();
+                // Keep slower IMU reads, formatting and transmission out of most control cycles.
+                if (telemetryTimer.seconds() >= 0.1) {
+                    telemetryTimer.reset();
+                    telemetry.addData("Mode", stopHeld ? "Motors stopped (B held)" : "Robot-centric / 100% drive");
+                    telemetry.addLine("Driver 1: sticks drive | Either B/Circle stops motors");
+                    telemetry.addData("IMU heading (info only)", "%.1f degrees", Math.toDegrees(robot.headingRadians()));
+                    telemetry.addData("LF / RF", "%.2f / %.2f", robot.leftFront.getPower(), robot.rightFront.getPower());
+                    telemetry.addData("LB / RB", "%.2f / %.2f", robot.leftBack.getPower(), robot.rightBack.getPower());
+                    double intakePower = robot.intake.getPower();
+                    telemetry.addData("Intake power", "%.0f%% (%s)", Math.abs(intakePower) * 100,
+                            intakePower > 0 ? "forward" : intakePower < 0 ? "reverse" : "stopped");
+                    telemetry.addData("Shooter target (wheel RPM)", shooterRpm);
+                    telemetry.addData("Shooter measured (wheel RPM)", "%.1f", measuredRpm);
+                    telemetry.addData("Shooter error (RPM)", "%.1f", shooterRpm - measuredRpm);
+                    telemetry.addData("Shooter battery (V)", "%.2f", robot.getShooterBatteryVoltage());
+                    telemetry.addData("Shooter active", !stopHeld && gamepad2.right_trigger > TRIGGER_THRESHOLD && shooterRpm > 0);
+                    telemetry.addData("Shooter ready", shooterReady ? "PURPLE - within +/-50 RPM" : "RED - not ready");
+                    telemetry.addData("Gate command", stickCommanded ? String.format(java.util.Locale.US, "%.3f", stickPosition) : "Not positioned (D-pad left/right to adjust)");
+                    telemetry.addLine("Driver 2: LT intake | LB reverse | RT shooter | Up/down RPM | Left/right FAST gate");
+                    telemetry.addData("Shooter effort", "%.0f%%", robot.getShooterPower() * 100);
+                    telemetry.addData("Last return to tolerance (ms)", "%.0f", robot.getLastRecoveryMs());
+                    telemetry.addData("Control loop (ms)", "%.1f", loopSeconds * 1000);
+                    telemetry.update();
+                }
                 idle();
             }
         } finally {

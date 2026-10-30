@@ -44,7 +44,10 @@ public final class RobotHardware {
     private double commandedShooterRpm;
     private final Iterable<VoltageSensor> voltageSensors;
     private long lastVoltageUpdateNanos;
-    private double appliedShooterF = ShooterSettings.VELOCITY_F;
+    private double measuredShooterRpm;
+    private double shooterPower;
+    private long recoveryStartNanos;
+    private double lastRecoveryMs = Double.NaN;
     private double shooterBatteryVoltage = Double.NaN;
     // Manufacturer chart: red at 1100 us, violet at 1900 us. Stay inside edges.
     private static final double LIGHT_RED = (1110.0 - 600.0) / 1800.0;
@@ -71,9 +74,8 @@ public final class RobotHardware {
         configure(intake, INTAKE_DIRECTION);
         configure(shooter, SHOOTER_DIRECTION);
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        shooter.setVelocityPIDFCoefficients(ShooterSettings.VELOCITY_P,
-                ShooterSettings.VELOCITY_I, ShooterSettings.VELOCITY_D, ShooterSettings.VELOCITY_F);
+        // Encoder is still read in this mode; the application owns the velocity loop.
+        shooter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         stick.setDirection(Servo.Direction.FORWARD);
         // Do not move the height gate during INIT; the driver positions it manually.
         imu = hardwareMap.get(IMU.class, IMU_NAME);
@@ -128,22 +130,21 @@ public final class RobotHardware {
 
     public void setShooterRpm(double wheelRpm) {
         if (!Double.isFinite(wheelRpm)) wheelRpm = 0;
-        commandedShooterRpm = Range.clip(wheelRpm, 0, ShooterSettings.MAX_RPM);
-        if (commandedShooterRpm == 0) {
-            shooter.setPower(0); // Disable velocity regulation and let the wheel coast.
-        } else {
-            maintainShooterVelocity();
+        double target = Range.clip(wheelRpm, 0, ShooterSettings.MAX_RPM);
+        if (target != commandedShooterRpm) {
+            recoveryStartNanos = 0;
+            lastRecoveryMs = Double.NaN;
         }
+        commandedShooterRpm = target;
+        // Use this same encoder sample for control, readiness, and telemetry.
+        measuredShooterRpm = ShooterSettings.ticksPerSecondToRpm(shooter.getVelocity());
+        maintainShooterVelocity();
     }
 
-    /** Keep the hub's encoder PIDF loop running at the requested wheel speed.
-     * Refresh voltage compensation at most four times/second; leave PID gains
-     * unchanged and avoid coefficient writes for insignificant voltage changes.
-     * This cannot prevent transient drops during spin-up or ball contact.
-     */
+    /** Call every TeleOp loop, including while disabled so release stops immediately. */
     private void maintainShooterVelocity() {
         long now = System.nanoTime();
-        if (lastVoltageUpdateNanos == 0 || now - lastVoltageUpdateNanos >= 250_000_000L) {
+        if (lastVoltageUpdateNanos == 0 || now - lastVoltageUpdateNanos >= 100_000_000L) {
             lastVoltageUpdateNanos = now;
             double voltage = Double.POSITIVE_INFINITY;
             for (VoltageSensor sensor : voltageSensors) {
@@ -153,23 +154,26 @@ public final class RobotHardware {
                 }
             }
             shooterBatteryVoltage = Double.isFinite(voltage) ? voltage : Double.NaN;
-            double compensatedF = ShooterSettings.voltageCompensatedF(shooterBatteryVoltage);
-            if (Math.abs(compensatedF - appliedShooterF) >= 0.1) {
-                shooter.setVelocityPIDFCoefficients(ShooterSettings.VELOCITY_P,
-                        ShooterSettings.VELOCITY_I, ShooterSettings.VELOCITY_D, compensatedF);
-                appliedShooterF = compensatedF;
-            }
         }
-        shooter.setVelocity(ShooterSettings.rpmToTicksPerSecond(commandedShooterRpm));
+        shooterPower = ShooterSettings.calculatePower(commandedShooterRpm,
+                measuredShooterRpm, shooterBatteryVoltage);
+        shooter.setPower(shooterPower);
+        if (commandedShooterRpm <= 0) {
+            recoveryStartNanos = 0;
+            lastRecoveryMs = Double.NaN;
+        } else if (!ShooterSettings.isReady(commandedShooterRpm, measuredShooterRpm)) {
+            if (recoveryStartNanos == 0) recoveryStartNanos = now;
+        } else if (recoveryStartNanos != 0) {
+            lastRecoveryMs = (now - recoveryStartNanos) / 1_000_000.0;
+            recoveryStartNanos = 0;
+        }
     }
 
-    public double getShooterBatteryVoltage() {
-        return shooterBatteryVoltage;
-    }
-
-    public double getShooterRpm() {
-        return ShooterSettings.ticksPerSecondToRpm(shooter.getVelocity());
-    }
+    public double getShooterBatteryVoltage() { return shooterBatteryVoltage; }
+    public double getShooterRpm() { return measuredShooterRpm; }
+    public double getShooterPower() { return shooterPower; }
+    // Time outside tolerance until first re-entry; not a measured shot count or settling time.
+    public double getLastRecoveryMs() { return lastRecoveryMs; }
 
     public boolean updateShooterLight(double measuredRpm) {
         boolean ready = ShooterSettings.isReady(commandedShooterRpm, measuredRpm);
