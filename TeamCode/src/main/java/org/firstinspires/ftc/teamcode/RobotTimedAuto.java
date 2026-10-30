@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 /** Timed shooting followed by a short robot-relative retreat. */
 @Autonomous(name = "5100 Shoot and Back Up", group = "5100")
 public final class RobotTimedAuto extends LinearOpMode {
+    private static final int AUTO_SHOOTER_RPM = 1600;
     private static final double SHOOT_SECONDS = 20.0;
     private static final double INTAKE_START_SECONDS = 5.0;
     private static final double BACK_UP_SECONDS = 1.5;
@@ -19,7 +20,7 @@ public final class RobotTimedAuto extends LinearOpMode {
         try {
             robot.stopAll();
             telemetry.addLine("INIT: motors stopped. Press START to begin.");
-            telemetry.addData("Shooter target (wheel RPM)", ShooterSettings.INITIAL_RPM);
+            telemetry.addData("Shooter target (wheel RPM)", AUTO_SHOOTER_RPM);
             telemetry.addLine("0-5 s: shooter | 5-20 s: shooter + intake -80% (reverse)");
             telemetry.addLine("Then back up at 100% for 1.5 s, then remain stopped.");
             telemetry.addLine("Position the height gate before starting; auto does not move it.");
@@ -34,7 +35,7 @@ public final class RobotTimedAuto extends LinearOpMode {
                 double elapsed = stageTimer.seconds();
                 if (elapsed >= SHOOT_SECONDS) break;
                 // Keep updating feedback throughout spin-up AND feeding; do not sleep.
-                robot.setShooterRpm(ShooterSettings.INITIAL_RPM);
+                robot.setShooterRpm(AUTO_SHOOTER_RPM);
                 double intakePower = elapsed >= INTAKE_START_SECONDS ? INTAKE_POWER : 0;
                 robot.setIntakePower(intakePower);
                 boolean ready = robot.updateShooterLight(robot.getShooterRpm());
@@ -42,7 +43,7 @@ public final class RobotTimedAuto extends LinearOpMode {
                     telemetryTimer.reset();
                     telemetry.addData("Stage", intakePower == 0 ? "Shooter spin-up" : "Shooting + intake");
                     telemetry.addData("Shooting elapsed (s)", "%.1f / 20.0", elapsed);
-                    telemetry.addData("Shooter target (wheel RPM)", ShooterSettings.INITIAL_RPM);
+                    telemetry.addData("Shooter target (wheel RPM)", AUTO_SHOOTER_RPM);
                     telemetry.addData("Shooter measured (wheel RPM)", "%.1f", robot.getShooterRpm());
                     telemetry.addData("Shooter effort", "%.0f%%", robot.getShooterPower() * 100);
                     telemetry.addData("Intake power", "%.0f%%", intakePower * 100);
