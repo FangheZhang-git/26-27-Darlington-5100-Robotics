@@ -153,6 +153,30 @@ The photos show GoBILDA 5202/3/4 series motor entries and a standard Servo entry
 for Stick. IMU orientation follows the supplied reference: REV logo UP, USB
 RIGHT. The old lift/grabber hardware and separate test OpModes are removed.
 
+## Timed autonomous: 5100 Shoot and Back Up
+
+Select **5100 Shoot and Back Up**. INIT initializes hardware with motors stopped;
+the Driver Station START button begins the sequence:
+
+| Time after START | Action |
+| --- | --- |
+| 0–5 seconds | Shooter regulates to the default 1430 wheel RPM; drive and intake stopped. |
+| 5–20 seconds | Shooter continues; intake runs forward at 80%. |
+| Next 1.5 seconds | Shooter and intake commands stop; drive backs up at the default 100% power. |
+| Remainder of autonomous | All motor commands remain zero, waiting for TeleOp. |
+
+The shooter feedback loop and red/purple ready indicator run throughout shooting.
+Intake starts on the fixed five-second schedule, regardless of readiness. The
+flywheel coasts after its power is removed. The gate receives no position command;
+position it before the run. STOP interrupts every stage. Backward polarity matches
+the physically corrected TeleOp mapping; this is timed open-loop movement, so the
+distance depends on battery, traction and load. TeleOp must be selected/started
+separately; this autonomous does not start it automatically.
+
+Include `RobotTimedAuto.java` with the three shared source files when deploying
+through OnBot Java, using the same package transformation as those files. This
+adds a distinct autonomous entry and does not replace the existing Road Runner auto.
+
 ## Current deployment
 
 The hub runs Robot Controller 12.0. The previously deployed version was compiled
