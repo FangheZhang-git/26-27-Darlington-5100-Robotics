@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 /** Timed shooting followed by a short robot-relative retreat. */
 @Autonomous(name = "5100 Shoot and Back Up", group = "5100")
 public final class RobotTimedAuto extends LinearOpMode {
-    private static final int AUTO_SHOOTER_RPM = 1600;
+    private static final int AUTO_SHOOTER_RPM = 1730;
     private static final double SHOOT_SECONDS = 20.0;
     private static final double INTAKE_START_SECONDS = 5.0;
     private static final double BACK_UP_SECONDS = 1.5;

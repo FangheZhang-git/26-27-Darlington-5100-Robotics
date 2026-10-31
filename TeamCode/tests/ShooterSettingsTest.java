@@ -11,7 +11,7 @@ public final class ShooterSettingsTest {
         return ShooterSettings.calculatePower(target, actual, volts);
     }
     public static void main(String[] args) {
-        check(ShooterSettings.INITIAL_RPM == 1430, "startup");
+        check(ShooterSettings.INITIAL_RPM == 1730, "startup");
         check(ShooterSettings.STEP_RPM == 50 && ShooterSettings.MAX_RPM == 2600, "limits");
         check(Math.abs(ShooterSettings.rpmToTicksPerSecond(1430) - 1334.6666666667) < 1e-6, "conversion");
         check(ShooterSettings.isReady(1430, 1380) && ShooterSettings.isReady(1430, 1480), "inclusive boundaries");

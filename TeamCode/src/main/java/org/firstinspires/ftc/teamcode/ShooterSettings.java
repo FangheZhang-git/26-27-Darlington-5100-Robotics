@@ -7,7 +7,7 @@ public final class ShooterSettings {
     public static final double MOTOR_TICKS_PER_REV = 28.0;
     public static final double MOTOR_REVS_PER_WHEEL_REV = 28.0 / 14.0;
     public static final double TICKS_PER_WHEEL_REV = MOTOR_TICKS_PER_REV * MOTOR_REVS_PER_WHEEL_REV;
-    public static final int INITIAL_RPM = 1430;
+    public static final int INITIAL_RPM = 1730;
     public static final int STEP_RPM = 50;
     public static final int MAX_RPM = 2600;
     public static final double TOLERANCE_RPM = 50.0;
