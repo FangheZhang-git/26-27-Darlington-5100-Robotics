@@ -29,7 +29,7 @@ public final class RobotHardware {
 
     // Mirrored direct-drive assumption; physical directions are not yet measured.
     public static final DcMotorSimple.Direction LF_DIRECTION = DcMotorSimple.Direction.REVERSE;
-    public static final DcMotorSimple.Direction LB_DIRECTION = DcMotorSimple.Direction.REVERSE;
+    public static final DcMotorSimple.Direction LB_DIRECTION = DcMotorSimple.Direction.FORWARD;
     public static final DcMotorSimple.Direction RF_DIRECTION = DcMotorSimple.Direction.FORWARD;
     public static final DcMotorSimple.Direction RB_DIRECTION = DcMotorSimple.Direction.FORWARD;
 
