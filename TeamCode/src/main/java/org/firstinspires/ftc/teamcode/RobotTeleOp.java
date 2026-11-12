@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.util.Range;
 /** Robot-centric drive, fixed intake and encoder-regulated shooter RPM, and adjustable intake-height gate. */
 @TeleOp(name = "5100 TeleOp", group = "5100")
 public final class RobotTeleOp extends LinearOpMode {
-    private static final double DRIVE_SPEED = 1.0;
+    private static final double DRIVE_SPEED = 1;
     private static final double TURN_SENSITIVITY = 0.80;
     private static final double INTAKE_FORWARD_POWER = 0.80;
     private static final double TRIGGER_THRESHOLD = 0.10;
@@ -65,8 +65,8 @@ public final class RobotTeleOp extends LinearOpMode {
                 } else {
                     // No application dead zone: pass proportional SDK stick values directly.
                     // Forward/backward polarity corrected from the physical driving check.
-                    robot.driveRobotCentric(gamepad1.left_stick_y, -gamepad1.left_stick_x,
-                            -gamepad1.right_stick_x * TURN_SENSITIVITY, DRIVE_SPEED);
+                    robot.driveFieldCentric(-gamepad1.left_stick_y, gamepad1.left_stick_x,
+                            gamepad1.right_stick_x * TURN_SENSITIVITY, DRIVE_SPEED);
                     robot.setIntakePower(gamepad2.left_bumper
                             ? -INTAKE_REVERSE_POWER
                             : (gamepad2.left_trigger > TRIGGER_THRESHOLD ? INTAKE_FORWARD_POWER : 0));
