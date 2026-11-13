@@ -55,9 +55,8 @@ public final class RobotTimedAuto extends LinearOpMode {
 
             robot.stopAll();
             if (!opModeIsActive()) return;
-            // Positive drive input matches pulling Driver 1's left stick BACKWARD
-            // with the robot's physically corrected TeleOp polarity.
-            robot.driveRobotCentric(1.0, 0, 0, DRIVE_SPEED);
+            // Negative forward power backs the robot away from its front.
+            robot.driveRobotCentric(-1.0, 0, 0, DRIVE_SPEED);
             stageTimer.reset();
             while (opModeIsActive() && stageTimer.seconds() < BACK_UP_SECONDS) {
                 if (telemetryTimer.seconds() >= 0.1) {
