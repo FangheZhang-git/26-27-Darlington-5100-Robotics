@@ -11,7 +11,7 @@ public final class RobotTimedAuto extends LinearOpMode {
     private static final double SHOOT_SECONDS = 20.0;
     private static final double INTAKE_START_SECONDS = 5.0;
     private static final double BACK_UP_SECONDS = 0.5;
-    private static final double INTAKE_POWER = -0.80;
+    private static final double INTAKE_POWER = 0.80;
     private static final double DRIVE_SPEED = 1.0;
 
     @Override
@@ -21,7 +21,7 @@ public final class RobotTimedAuto extends LinearOpMode {
             robot.stopAll();
             telemetry.addLine("INIT: motors stopped. Press START to begin.");
             telemetry.addData("Shooter target (wheel RPM)", AUTO_SHOOTER_RPM);
-            telemetry.addLine("0-5 s: shooter | 5-20 s: shooter + intake -80% (reverse)");
+            telemetry.addLine("0-5 s: shooter | 5-20 s: shooter + intake 80% (forward)");
             telemetry.addLine("Then back up at 100% for 0.5 s, then remain stopped.");
             telemetry.addLine("Position the height gate before starting; auto does not move it.");
             telemetry.update();
