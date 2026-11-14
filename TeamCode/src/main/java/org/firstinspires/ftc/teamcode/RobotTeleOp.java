@@ -21,7 +21,7 @@ public final class RobotTeleOp extends LinearOpMode {
         try {
             telemetry.addLine("5100 ready. Robot-centric: forward follows the robot front.");
             telemetry.addLine("Driver 1: left stick move | right stick turn");
-            telemetry.addLine("Driver 2: LT intake 80% | LB reverse 60% | RT shooter (starts at 1730 wheel RPM)");
+            telemetry.addLine("Driver 2: LT intake 80% | LB reverse 60% | RT shooter (starts at 1630 wheel RPM)");
             telemetry.addLine("Driver 2: up/down shooter +/-50 RPM (0-2600) | Circle/B open gate | Triangle/Y close gate");
             telemetry.addLine("Driver 1: hold Circle/B to stop all motors.");
             telemetry.addLine("Gate stays uncommanded until Driver 2 presses Circle/B or Triangle/Y.");
